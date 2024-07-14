@@ -2,6 +2,7 @@
 dependencies:
   espressif/button: "^3.2.0"
   espressif/led_strip: "^2.5.3"
+  esp_tinyusb: "~1.0.0"
   ## Required IDF version
   idf:
     version: ">=4.1.0"
