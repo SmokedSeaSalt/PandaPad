@@ -1,5 +1,7 @@
 ## IDF Component Manager Manifest File
 dependencies:
+  #lvgl/lvgl_esp32_drivers: "^0.0.3"
+  lvgl/lvgl: "^8.3.7"
   espressif/button: "^3.2.0"
   espressif/led_strip: "^2.5.3"
   ## Required IDF version

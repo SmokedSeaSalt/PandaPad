@@ -9,11 +9,13 @@
 //include ESP-IDF components
 #include "led_strip.h"
 #include "iot_button.h"
+#include "lvgl.h"
 
 //include local sources
 
 #include "led.h"
 #include "keypad.h"
+#include "display.h"
 
 /* PandaPad key positions
 
@@ -29,10 +31,6 @@
 |           | C | D | E | F |
 -----------------------------
 */
-
-
-
-
 
 
 void app_main(void)
@@ -51,13 +49,12 @@ void app_main(void)
 
     initialize_keypad();
 
-
+    display_init();
 
 
 
 
     while(1){
         vTaskDelay(10);
-
     }
 }

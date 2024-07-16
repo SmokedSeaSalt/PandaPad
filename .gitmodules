@@ -1,0 +1,6 @@
+[submodule "PandaPad/components/components/lvgl_esp32_drivers"]
+	path = PandaPad/components/components/lvgl_esp32_drivers
+	url = https://github.com/lvgl/lvgl_esp32_drivers.git
+[submodule "PandaPad/components/lvgl_esp32_drivers"]
+	path = PandaPad/components/lvgl_esp32_drivers
+	url = https://github.com/hiruna/lvgl_esp32_drivers.git
