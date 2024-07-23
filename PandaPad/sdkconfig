@@ -1996,6 +1996,17 @@ CONFIG_LV_I2C_TOUCH_PORT=0
 # end of LVGL ESP Drivers
 
 #
+# CMake Utilities
+#
+# CONFIG_CU_RELINKER_ENABLE is not set
+# CONFIG_CU_DIAGNOSTICS_COLOR_NEVER is not set
+CONFIG_CU_DIAGNOSTICS_COLOR_ALWAYS=y
+# CONFIG_CU_DIAGNOSTICS_COLOR_AUTO is not set
+# CONFIG_CU_GCC_LTO_ENABLE is not set
+# CONFIG_CU_GCC_STRING_1BYTE_ALIGN is not set
+# end of CMake Utilities
+
+#
 # IoT Button
 #
 CONFIG_BUTTON_PERIOD_TIME_MS=5
@@ -2306,17 +2317,6 @@ CONFIG_LV_USE_GRID=y
 # CONFIG_LV_USE_DEMO_MUSIC is not set
 # end of Demos
 # end of LVGL configuration
-
-#
-# CMake Utilities
-#
-# CONFIG_CU_RELINKER_ENABLE is not set
-# CONFIG_CU_DIAGNOSTICS_COLOR_NEVER is not set
-CONFIG_CU_DIAGNOSTICS_COLOR_ALWAYS=y
-# CONFIG_CU_DIAGNOSTICS_COLOR_AUTO is not set
-# CONFIG_CU_GCC_LTO_ENABLE is not set
-# CONFIG_CU_GCC_STRING_1BYTE_ALIGN is not set
-# end of CMake Utilities
 # end of Component config
 
 # CONFIG_IDF_EXPERIMENTAL_FEATURES is not set
