@@ -10,6 +10,8 @@
 #include "esp_system.h"
 #include "esp_timer.h"
 #include "driver/gpio.h"
+#include "esp_log.h"
+#include "esp_err.h"
 
 /* Littlevgl specific */
 #ifdef LV_LVGL_H_INCLUDE_SIMPLE
@@ -33,6 +35,8 @@
 static void lv_tick_task(void *arg);
 static void guiTask(void *pvParameter);
 static void create_demo_application(void);
+static void create_default_menu(void);
+static void lv_example_style_9(void);
 
 /**********************
  *   APPLICATION MAIN
@@ -60,7 +64,7 @@ static void guiTask(void *pvParameter) {
     /* Initialize SPI or I2C bus used by the drivers */
     lvgl_driver_init();
 
-    lv_color_t* buf1 = heap_caps_malloc(DISP_BUF_SIZE * sizeof(lv_color_t), MALLOC_CAP_DMA);
+    lv_color_t* buf1 = heap_caps_malloc((DISP_BUF_SIZE * sizeof(lv_color_t)), MALLOC_CAP_DMA);
     assert(buf1 != NULL);
 
     /* Use double buffered when not working with monochrome displays */
@@ -71,8 +75,6 @@ static void guiTask(void *pvParameter) {
     static lv_color_t *buf2 = NULL;
 #endif
 
-
-
     static lv_disp_draw_buf_t draw_buf;
 
     uint32_t size_in_px = DISP_BUF_SIZE;
@@ -80,6 +82,7 @@ static void guiTask(void *pvParameter) {
 #if defined CONFIG_LV_TFT_DISPLAY_CONTROLLER_IL3820         \
     || defined CONFIG_LV_TFT_DISPLAY_CONTROLLER_JD79653A    \
     || defined CONFIG_LV_TFT_DISPLAY_CONTROLLER_UC8151D     \
+    || defined CONFIG_LV_TFT_DISPLAY_CONTROLLER_SSD1680     \
     || defined CONFIG_LV_TFT_DISPLAY_CONTROLLER_SSD1306
 
     /* Actual size in pixels, not bytes. */
@@ -107,8 +110,8 @@ static void guiTask(void *pvParameter) {
 #endif
 
     disp_drv.draw_buf = &draw_buf;
-    disp_drv.ver_res = LV_VER_RES_MAX;
-    disp_drv.hor_res = LV_HOR_RES_MAX;
+    disp_drv.hor_res = LV_VER_RES_MAX;
+    disp_drv.ver_res = LV_HOR_RES_MAX;
     lv_disp_drv_register(&disp_drv);
 
 
@@ -122,7 +125,7 @@ static void guiTask(void *pvParameter) {
     ESP_ERROR_CHECK(esp_timer_start_periodic(periodic_timer, LV_TICK_PERIOD_MS * 1000));
 
     /* Create the demo application */
-    create_demo_application();
+    create_default_menu();
 
     while (1) {
         /* Delay 1 tick (assumes FreeRTOS tick is 10ms */
@@ -142,6 +145,247 @@ static void guiTask(void *pvParameter) {
 #endif
     vTaskDelete(NULL);
 }
+
+static void create_default_menu(void)
+{
+    // Create a style
+    static lv_style_t style_grid_outline;
+    lv_style_init(&style_grid_outline);
+
+    // Set the outline properties
+    lv_style_set_outline_width(&style_grid_outline, 1);
+    lv_style_set_outline_pad(&style_grid_outline, -1);
+
+
+    //296 = 52, 52, 48, 48, 48, 48
+    static lv_coord_t col_dsc[] = {52, 52, 48, 48, 48, 48, LV_GRID_TEMPLATE_LAST};
+    //128 = 25, 25, 26, 26, 26
+    static lv_coord_t row_dsc[] = {25, 25, 26, 26, 26, LV_GRID_TEMPLATE_LAST};
+
+    /*Create a container with grid*/
+    lv_obj_t * cont = lv_obj_create(lv_scr_act());
+    lv_obj_set_grid_align(cont, LV_GRID_ALIGN_SPACE_BETWEEN, LV_GRID_ALIGN_SPACE_BETWEEN);
+    lv_obj_set_grid_dsc_array(cont, col_dsc, row_dsc);
+    lv_obj_set_size(cont, 296, 128);
+    lv_obj_center(cont);
+
+    lv_obj_t * label;
+    lv_obj_t * obj;
+
+    /*
+    -------------------------------------------------
+    |   0   |   1   |                               |
+    -----------------           Menu Name           -
+    |   2   |   3   |                               |
+    -------------------------------------------------
+    |               |   4   |   5   |   6   |   7   |
+    -      Menu     ---------------------------------
+    |      Info     |   8   |   9   |   A   |   B   |
+    -               ---------------------------------
+    |               |   C   |   D   |   E   |   F   |
+    -------------------------------------------------
+    */
+
+    /*Cell 0 to 0;0 with width 1;1*/
+    obj = lv_obj_create(cont);
+    lv_obj_add_style(obj, &style_grid_outline, 0);
+    lv_obj_set_size(obj, col_dsc[0], row_dsc[0]);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_STRETCH, 0, 1,
+                         LV_GRID_ALIGN_STRETCH, 0, 1);
+    label = lv_label_create(obj);
+    lv_label_set_text(label, "0");
+    lv_obj_center(label);
+
+    /*Cell 1 to 1;0 with width 1;1*/
+    obj = lv_obj_create(cont);
+    lv_obj_add_style(obj, &style_grid_outline, 0);
+    lv_obj_set_size(obj, col_dsc[1], row_dsc[0]);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_STRETCH, 1, 1,
+                         LV_GRID_ALIGN_STRETCH, 0, 1);
+    label = lv_label_create(obj);
+    lv_label_set_text(label, "1");
+    lv_obj_center(label);
+
+    /*Cell 2 to 0;1 with width 1;1*/
+    obj = lv_obj_create(cont);
+    lv_obj_add_style(obj, &style_grid_outline, 0);
+    lv_obj_set_size(obj, col_dsc[0], row_dsc[1]);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_STRETCH, 0, 1,
+                         LV_GRID_ALIGN_STRETCH, 1, 1);
+    label = lv_label_create(obj);
+    lv_label_set_text(label, "2");
+    lv_obj_center(label);
+
+    /*Cell 3 to 1;1 with width 1;1*/
+    obj = lv_obj_create(cont);
+    lv_obj_add_style(obj, &style_grid_outline, 0);
+    lv_obj_set_size(obj, col_dsc[1], row_dsc[1]);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_STRETCH, 1, 1,
+                         LV_GRID_ALIGN_STRETCH, 1, 1);
+    label = lv_label_create(obj);
+    lv_label_set_text(label, "3");
+    lv_obj_center(label);
+
+    /*Cell Menu Name to 3;0 with width 4;2*/
+    obj = lv_obj_create(cont);
+    lv_obj_add_style(obj, &style_grid_outline, 0);
+    lv_obj_set_size(obj, 192, 50);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_STRETCH, 3, 4,
+                         LV_GRID_ALIGN_STRETCH, 0, 2);
+    label = lv_label_create(obj);
+    lv_label_set_text(label, "Menu Name");
+    lv_obj_center(label);
+
+    /*Cell Menu Info to 0;3 with width 2;3*/
+    obj = lv_obj_create(cont);
+    lv_obj_add_style(obj, &style_grid_outline, 0);
+    lv_obj_set_size(obj, 104, 78);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_STRETCH, 0, 2,
+                         LV_GRID_ALIGN_STRETCH, 3, 3);
+    label = lv_label_create(obj);
+    lv_label_set_text(label, "Menu\nInfo");
+    lv_obj_center(label);
+
+    /*Cell 4 to 3;3 with width 1;1*/
+    obj = lv_obj_create(cont);
+    lv_obj_add_style(obj, &style_grid_outline, 0);
+    lv_obj_set_size(obj, col_dsc[3], row_dsc[3]);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_STRETCH, 3, 1,
+                         LV_GRID_ALIGN_STRETCH, 3, 1);
+    label = lv_label_create(obj);
+    lv_label_set_text(label, "4");
+    lv_obj_center(label);
+    
+    /*Cell 5 to 4;3 with width 1;1*/
+    obj = lv_obj_create(cont);
+    lv_obj_add_style(obj, &style_grid_outline, 0);
+    lv_obj_set_size(obj, col_dsc[4], row_dsc[3]);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_STRETCH, 4, 1,
+                         LV_GRID_ALIGN_STRETCH, 3, 1);
+    label = lv_label_create(obj);
+    lv_label_set_text(label, "5");
+    lv_obj_center(label);
+
+    /*Cell 6 to 5;3 with width 1;1*/
+    obj = lv_obj_create(cont);
+    lv_obj_add_style(obj, &style_grid_outline, 0);
+    lv_obj_set_size(obj, col_dsc[5], row_dsc[3]);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_STRETCH, 5, 1,
+                         LV_GRID_ALIGN_STRETCH, 3, 1);
+    label = lv_label_create(obj);
+    lv_label_set_text(label, "6");
+    lv_obj_center(label);
+
+    /*Cell 7 to 6;3 with width 1;1*/
+    obj = lv_obj_create(cont);
+    lv_obj_add_style(obj, &style_grid_outline, 0);
+    lv_obj_set_size(obj, col_dsc[6], row_dsc[3]);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_STRETCH, 6, 1,
+                         LV_GRID_ALIGN_STRETCH, 3, 1);
+    label = lv_label_create(obj);
+    lv_label_set_text(label, "7");
+    lv_obj_center(label);
+
+    /*Cell 8 to 3;4 with width 1;1*/
+    obj = lv_obj_create(cont);
+    lv_obj_add_style(obj, &style_grid_outline, 0);
+    lv_obj_set_size(obj, col_dsc[3], row_dsc[4]);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_STRETCH, 3, 1,
+                         LV_GRID_ALIGN_STRETCH, 4, 1);
+    label = lv_label_create(obj);
+    lv_label_set_text(label, "8");
+    lv_obj_center(label);
+    
+    /*Cell 9 to 4;4 with width 1;1*/
+    obj = lv_obj_create(cont);
+    lv_obj_add_style(obj, &style_grid_outline, 0);
+    lv_obj_set_size(obj, col_dsc[4], row_dsc[4]);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_STRETCH, 4, 1,
+                         LV_GRID_ALIGN_STRETCH, 4, 1);
+    label = lv_label_create(obj);
+    lv_label_set_text(label, "9");
+    lv_obj_center(label);
+
+    /*Cell A to 5;4 with width 1;1*/
+    obj = lv_obj_create(cont);
+    lv_obj_add_style(obj, &style_grid_outline, 0);
+    lv_obj_set_size(obj, col_dsc[5], row_dsc[4]);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_STRETCH, 5, 1,
+                         LV_GRID_ALIGN_STRETCH, 4, 1);
+    label = lv_label_create(obj);
+    lv_label_set_text(label, "A");
+    lv_obj_center(label);
+
+    /*Cell B to 6;4 with width 1;1*/
+    obj = lv_obj_create(cont);
+    lv_obj_add_style(obj, &style_grid_outline, 0);
+    lv_obj_set_size(obj, col_dsc[6], row_dsc[4]);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_STRETCH, 6, 1,
+                         LV_GRID_ALIGN_STRETCH, 4, 1);
+    label = lv_label_create(obj);
+    lv_label_set_text(label, "B");
+    lv_obj_center(label);
+
+    /*Cell C to 3;5 with width 1;1*/
+    obj = lv_obj_create(cont);
+    lv_obj_add_style(obj, &style_grid_outline, 0);
+    lv_obj_set_size(obj, col_dsc[3], row_dsc[5]);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_STRETCH, 3, 1,
+                         LV_GRID_ALIGN_STRETCH, 5, 1);
+    label = lv_label_create(obj);
+    lv_label_set_text(label, "C");
+    lv_obj_center(label);
+    
+    /*Cell D to 4;5 with width 1;1*/
+    obj = lv_obj_create(cont);
+    lv_obj_add_style(obj, &style_grid_outline, 0);
+    lv_obj_set_size(obj, col_dsc[4], row_dsc[5]);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_STRETCH, 4, 1,
+                         LV_GRID_ALIGN_STRETCH, 5, 1);
+    label = lv_label_create(obj);
+    lv_label_set_text(label, "D");
+    lv_obj_center(label);
+
+    /*Cell E to 5;5 with width 1;1*/
+    obj = lv_obj_create(cont);
+    lv_obj_add_style(obj, &style_grid_outline, 0);
+    lv_obj_set_size(obj, col_dsc[5], row_dsc[5]);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_STRETCH, 5, 1,
+                         LV_GRID_ALIGN_STRETCH, 5, 1);
+    label = lv_label_create(obj);
+    lv_label_set_text(label, "E");
+    lv_obj_center(label);
+
+    /*Cell F to 6;5 with width 1;1*/
+    obj = lv_obj_create(cont);
+    lv_obj_add_style(obj, &style_grid_outline, 0);
+    lv_obj_set_size(obj, col_dsc[6], row_dsc[5]);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_STRETCH, 6, 1,
+                         LV_GRID_ALIGN_STRETCH, 5, 1);
+    label = lv_label_create(obj);
+    lv_label_set_text(label, "F");
+    lv_obj_center(label);
+
+}
+
+void lv_example_style_9(void)
+{
+    static lv_style_t style;
+    lv_style_init(&style);
+
+    lv_style_set_line_width(&style, 1);
+    lv_style_set_line_rounded(&style, false);
+
+    /*Create an object with the new style*/
+    lv_obj_t * obj = lv_line_create(lv_scr_act());
+    lv_obj_add_style(obj, &style, 0);
+
+    static lv_point_t p[] = {{0, 0}, {0, 125}, {293, 125}, {293, 0}, {0, 0}};
+    lv_line_set_points(obj, p, 5);
+
+    lv_obj_center(obj);
+}
+
 
 static void create_demo_application(void)
 {
