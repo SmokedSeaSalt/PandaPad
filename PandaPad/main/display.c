@@ -22,6 +22,18 @@
 
 #include "lvgl_helpers.h"
 
+/*********************
+ *      fonts
+ *********************/
+//fipps_4
+//fipps_8
+LV_FONT_DECLARE(fipps_8)
+//fipps_16
+//pixel_bit_advanced_4
+//pixel_bit_advanced_8
+LV_FONT_DECLARE(pixel_bit_advanced_8)
+//pixel_bit_advanced_16
+LV_FONT_DECLARE(pixel_bit_advanced_16)
 
 /*********************
  *      DEFINES
@@ -149,6 +161,7 @@ static void create_default_menu(void)
     // Create a style
     static lv_style_t style_grid_outline;
     lv_style_init(&style_grid_outline);
+    lv_style_set_text_font(&style_grid_outline, &pixel_bit_advanced_16);
 
     // Set the outline properties
     lv_style_set_outline_width(&style_grid_outline, 1);

@@ -1,0 +1,2 @@
+#define LV_FONT_CUSTOM_DECLARE	LV_FONT_DECLARE(fipps_4) LV_FONT_DECLARE(fipps_8) LV_FONT_DECLARE(fipps_16) LV_FONT_DECLARE(pixel_bit_advanced_4) LV_FONT_DECLARE(pixel_bit_advanced_8) LV_FONT_DECLARE(pixel_bit_advanced_16)
+
