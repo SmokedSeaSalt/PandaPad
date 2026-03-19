@@ -55,7 +55,7 @@ void button_press_down_cb(void *arg, void *data)
 
 void button_press_up_cb(void *arg, void *data)
 {
-    ESP_LOGI(TAG, "BTN%s: BUTTON_PRESS_UP[%d]", get_btn_index((button_handle_t)arg), iot_button_get_ticks_time((button_handle_t)arg));
+    ESP_LOGI(TAG, "BTN%s: BUTTON_PRESS_UP[%lu]", get_btn_index((button_handle_t)arg), iot_button_get_ticks_time((button_handle_t)arg));
     turn_off_backlight(atoi(get_btn_index((button_handle_t)arg)));
 }
 
@@ -81,7 +81,7 @@ void button_long_press_start_cb(void *arg, void *data)
 
 void button_long_press_hold_cb(void *arg, void *data)
 {
-    ESP_LOGI(TAG, "BTN%s: BUTTON_LONG_PRESS_HOLD[%d],count is [%d]", get_btn_index((button_handle_t)arg), iot_button_get_ticks_time((button_handle_t)arg), iot_button_get_long_press_hold_cnt((button_handle_t)arg));
+    ESP_LOGI(TAG, "BTN%s: BUTTON_LONG_PRESS_HOLD[%lu],count is [%u]", get_btn_index((button_handle_t)arg), iot_button_get_ticks_time((button_handle_t)arg), iot_button_get_long_press_hold_cnt((button_handle_t)arg));
 }
 
 void button_press_repeat_done_cb(void *arg, void *data)
