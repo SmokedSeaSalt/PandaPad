@@ -50,6 +50,23 @@ void i2c_init(void)
     };
 
     ESP_ERROR_CHECK(i2c_master_bus_add_device(bus_handle, &dev_cfg, &dev_handle));
+
+    // Wait for the Pinnacle to actually respond before returning
+    // handles both warm resets (fast) and cold power-on (slower) correctly.
+    esp_err_t probe_err;
+    int retries = 30;
+    do {
+        probe_err = i2c_master_probe(bus_handle, CIRQUE_PINNACLE_ADDR, 50);
+        if (probe_err != ESP_OK) {
+            vTaskDelay(pdMS_TO_TICKS(20));
+        }
+    } while (probe_err != ESP_OK && --retries > 0);
+
+    if (probe_err != ESP_OK) {
+        ESP_LOGE(TAG, "Pinnacle never responded after retries during i2c_init!");
+    } else {
+        ESP_LOGI(TAG, "Pinnacle responded after %d retries", 30 - retries);
+    }
 }
 
 

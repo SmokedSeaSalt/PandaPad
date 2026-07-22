@@ -44,10 +44,10 @@ void i2c_init(void)
 }
 
 void i2c_ReadBytes(uint8_t address, uint8_t* data, uint8_t count){
-  i2c_master_transmit_receive(dev_handle, &address, 1, data, count, I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS)
+  i2c_master_transmit_receive(dev_handle, &address, 1, data, count, I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
 }
 
 void i2c_Write(uint8_t address, uint8_t data) {
     uint8_t write_buf[2] = {address, data};
-  i2c_master_transmit(dev_handle, write_buf, sizeof(write_buf), I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS)
+  i2c_master_transmit(dev_handle, write_buf, sizeof(write_buf), I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
 }
