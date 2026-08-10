@@ -6,6 +6,7 @@
 #include "class/hid/hid_device.h"
 #include "driver/gpio.h"
 #include "usb_hid.h"
+#include "tusb_cdc_acm.h"
 
 static const char *TAG = "usb-hid";
 
@@ -25,26 +26,50 @@ const uint8_t hid_report_descriptor[] = {
 /**
  * @brief String descriptor
  */
-const char* hid_string_descriptor[5] = {
+const char* hid_string_descriptor[6] = {
     // array of pointer to string descriptors
-    (char[]){0x09, 0x04},  // 0: is supported language is English (0x0409)
-    "TinyUSB",             // 1: Manufacturer
-    "TinyUSB Device",      // 2: Product
-    "123456",              // 3: Serials, should use chip ID
-    "Example HID interface",  // 4: HID
+    (char[]){0x09, 0x04},  // 0: supported language is English (0x0409)
+    "TinyUSB",              // 1: Manufacturer
+    "TinyUSB Device",       // 2: Product
+    "123456",               // 3: Serial, should use chip ID
+    "Example HID interface",// 4: HID
+    "Example CDC interface",// 5: CDC
 };
+
+/**
+ * @brief Interface and endpoint numbering
+ *
+ * CDC needs 2 interfaces (control + data) and 3 endpoints.
+ * HID needs 1 interface and 1 endpoint.
+ */
+enum {
+    ITF_NUM_CDC = 0,
+    ITF_NUM_CDC_DATA,
+    ITF_NUM_HID,
+    ITF_NUM_TOTAL
+};
+
+#define EPNUM_CDC_NOTIF   0x81  // CDC notification IN
+#define EPNUM_CDC_OUT     0x02  // CDC data OUT
+#define EPNUM_CDC_IN      0x82  // CDC data IN
+#define EPNUM_HID         0x83  // HID IN
+
+#define CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_CDC_DESC_LEN + TUD_HID_DESC_LEN)
 
 /**
  * @brief Configuration descriptor
  *
- * This is a simple configuration descriptor that defines 1 configuration and 1 HID interface
+ * Defines 1 configuration, 3 interfaces (CDC control, CDC data, HID)
  */
 static const uint8_t hid_configuration_descriptor[] = {
     // Configuration number, interface count, string index, total length, attribute, power in mA
-    TUD_CONFIG_DESCRIPTOR(1, 1, 0, TUSB_DESC_TOTAL_LEN, TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP, 100),
+    TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP, 100),
 
-    // Interface number, string index, boot protocol, report descriptor len, EP In address, size & polling interval
-    TUD_HID_DESCRIPTOR(0, 4, false, sizeof(hid_report_descriptor), 0x81, 16, 10),
+    // CDC: Interface number, string index, notif EP, notif size, data OUT, data IN, data size
+    TUD_CDC_DESCRIPTOR(ITF_NUM_CDC, 5, EPNUM_CDC_NOTIF, 8, EPNUM_CDC_OUT, EPNUM_CDC_IN, 64),
+
+    // HID: Interface number, string index, boot protocol, report descriptor len, EP In address, size & polling interval
+    TUD_HID_DESCRIPTOR(ITF_NUM_HID, 4, false, sizeof(hid_report_descriptor), EPNUM_HID, 16, 10),
 };
 
 /********* TinyUSB HID callbacks ***************/
@@ -105,11 +130,22 @@ void usb_hid_init(void){
     const tinyusb_config_t tusb_cfg = {
         .device_descriptor = NULL,
         .string_descriptor = hid_string_descriptor,
-        //.string_descriptor_count = sizeof(hid_string_descriptor) / sizeof(hid_string_descriptor[0]),
+        .string_descriptor_count = sizeof(hid_string_descriptor) / sizeof(hid_string_descriptor[0]),
         .external_phy = false,
         .configuration_descriptor = hid_configuration_descriptor,
     };
-
     ESP_ERROR_CHECK(tinyusb_driver_install(&tusb_cfg));
+
+    const tinyusb_config_cdcacm_t acm_cfg = {
+        .usb_dev = TINYUSB_USBDEV_0,
+        .cdc_port = TINYUSB_CDC_ACM_0,
+        .rx_unread_buf_sz = 64,
+        .callback_rx = NULL,        // set a callback here if you want to receive data from the host
+        .callback_rx_wanted_char = NULL,
+        .callback_line_state_changed = NULL,
+        .callback_line_coding_changed = NULL,
+    };
+    ESP_ERROR_CHECK(tusb_cdc_acm_init(&acm_cfg));
+
     ESP_LOGI(TAG, "USB initialization DONE");
 }
