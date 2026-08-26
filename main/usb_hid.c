@@ -7,6 +7,7 @@
 #include "driver/gpio.h"
 #include "usb_hid.h"
 #include "tusb_cdc_acm.h"
+#include "tusb_console.h"
 
 static const char *TAG = "usb-hid";
 
@@ -125,6 +126,17 @@ static void app_send_hid_demo(void)
     }
 }*/
 
+static int cdc_log_vprintf(const char *fmt, va_list args)
+{
+    char buf[256];
+    int len = vsnprintf(buf, sizeof(buf), fmt, args);
+    if (len > 0) {
+        tinyusb_cdcacm_write_queue(TINYUSB_CDC_ACM_0, (const uint8_t *)buf, len);
+        tinyusb_cdcacm_write_flush(TINYUSB_CDC_ACM_0, 0);
+    }
+    return len;
+}
+
 void usb_hid_init(void){
     ESP_LOGI(TAG, "USB initialization");
     const tinyusb_config_t tusb_cfg = {
@@ -146,6 +158,11 @@ void usb_hid_init(void){
         .callback_line_coding_changed = NULL,
     };
     ESP_ERROR_CHECK(tusb_cdc_acm_init(&acm_cfg));
+
+    // Redirect ESP_LOG (and printf/stdout) onto this CDC-ACM port
+    // ESP_ERROR_CHECK(esp_tusb_init_console(TINYUSB_CDC_ACM_0));
+    // Instead of esp_tusb_init_console():
+    esp_log_set_vprintf(cdc_log_vprintf);
 
     ESP_LOGI(TAG, "USB initialization DONE");
 }
